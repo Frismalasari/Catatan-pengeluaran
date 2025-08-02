@@ -2,20 +2,28 @@
 const form = document.getElementById('expense-form');
 const expenseList = document.getElementById('expense-list');
 const totalAmount = document.getElementById('total-amount');
+const filterSelect = document.getElementById('filter-category');
+const exportBtn = document.getElementById('export-btn');
 
 // Data pengeluaran
 let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
 
-// Fungsi untuk memperbarui tampilan
+// Fungsi untuk memfilter dan merender
 function renderExpenses() {
+  const selectedCategory = filterSelect.value;
+  const filteredExpenses = selectedCategory 
+    ? expenses.filter(exp => exp.category === selectedCategory)
+    : expenses;
+
   expenseList.innerHTML = '';
   let total = 0;
 
-  expenses.forEach((exp, index) => {
+  filteredExpenses.forEach((exp, index) => {
+    const originalIndex = expenses.indexOf(exp); // Indeks asli untuk hapus
+    total += exp.amount;
+
     const li = document.createElement('li');
     li.className = 'expense-item';
-
-    total += exp.amount;
 
     li.innerHTML = `
       <div class="info">
@@ -25,11 +33,12 @@ function renderExpenses() {
       <span class="amount">Rp ${exp.amount.toLocaleString()}</span>
     `;
 
-    // Tambahkan event klik untuk menghapus
     li.addEventListener('click', () => {
-      expenses.splice(index, 1);
-      saveToLocalStorage();
-      renderExpenses();
+      if (confirm(`Hapus pengeluaran: ${exp.title}?`)) {
+        expenses.splice(originalIndex, 1);
+        saveToLocalStorage();
+        renderExpenses();
+      }
     });
 
     expenseList.appendChild(li);
@@ -38,7 +47,7 @@ function renderExpenses() {
   totalAmount.textContent = `Rp ${total.toLocaleString()}`;
 }
 
-// Format tanggal (YYYY-MM-DD => DD/MM/YYYY)
+// Format tanggal
 function formatDate(dateStr) {
   const [year, month, day] = dateStr.split('-');
   return `${day}/${month}/${year}`;
@@ -49,7 +58,32 @@ function saveToLocalStorage() {
   localStorage.setItem('expenses', JSON.stringify(expenses));
 }
 
-// Event Listener untuk form
+// Ekspor ke Excel
+exportBtn.addEventListener('click', () => {
+  if (expenses.length === 0) {
+    alert("Tidak ada data untuk diekspor.");
+    return;
+  }
+
+  const data = expenses.map(exp => ({
+    "Nama Pengeluaran": exp.title,
+    "Kategori": exp.category,
+    "Jumlah (Rp)": exp.amount,
+    "Tanggal": formatDate(exp.date)
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Pengeluaran Bulanan");
+
+  // Download file
+  XLSX.writeFile(wb, `pengeluaran_${new Date().toLocaleDateString('id-ID').replace(/\//g, '-')}.xlsx`);
+});
+
+// Filter kategori
+filterSelect.addEventListener('change', renderExpenses);
+
+// Tambah pengeluaran
 form.addEventListener('submit', (e) => {
   e.preventDefault();
 
@@ -58,13 +92,10 @@ form.addEventListener('submit', (e) => {
   const category = document.getElementById('category').value;
   const date = document.getElementById('date').value;
 
-  const newExpense = { title, amount, category, date };
-
-  expenses.push(newExpense);
+  expenses.push({ title, amount, category, date });
   saveToLocalStorage();
   renderExpenses();
 
-  // Reset form
   form.reset();
 });
 
