@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pencatatan Pengeluaran Bulanan</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Pencatatan Pengeluaran Bulanan</h1>
+
+    <!-- Form Input -->
+    <form id="expense-form" class="form">
+      <input type="text" id="title" placeholder="Nama Pengeluaran" required />
+      
+      <input type="number" id="amount" placeholder="Jumlah (Rp)" required />
+      
+      <select id="category" required>
+        <option value="" disabled selected>Pilih Kategori</option>
+        <option value="Makanan">Makanan</option>
+        <option value="Transportasi">Transportasi</option>
+        <option value="Hiburan">Hiburan</option>
+        <option value="Kesehatan">Kesehatan</option>
+        <option value="Lainnya">Lainnya</option>
+      </select>
+      
+      <input type="date" id="date" required />
+      
+      <button type="submit">Tambah Pengeluaran</button>
+    </form>
+
+    <!-- Total Pengeluaran -->
+    <div class="total">
+      <h2>Total Pengeluaran: <span id="total-amount">Rp 0</span></h2>
+    </div>
+
+    <!-- Daftar Pengeluaran -->
+    <ul id="expense-list" class="expense-list"></ul>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
